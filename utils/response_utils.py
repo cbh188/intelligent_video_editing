@@ -70,5 +70,5 @@ def not_found_response(errorCode, errorMessage):
     return error_response(404, errorCode, errorMessage, "Not Found")
 
 def internal_server_error_response(errorCode, errorMessage):
-    return error_response(500, errorCode, errorMessage, "Internal Server Error")
+    return error_response(500, errorCode, errorMessage, "服务异常")
 

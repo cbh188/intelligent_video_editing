@@ -23,7 +23,7 @@ def video_editing(video_id, student_id, video_url, image_url, threshold=0.8):
 
             """
     # 获取初始url
-    base_url = "C:/work/WebstormProjects/intelligent_video_editing/public"
+    base_url = "C:/work/WebstormProjects/intelligent_video_editing-web/public"
     image_url = base_url + image_url
     video_url = base_url + video_url
     # 获取设备

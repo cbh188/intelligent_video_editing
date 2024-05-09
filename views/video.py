@@ -4,7 +4,7 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from services import base_service, user_service, org_service, student_service, video_service
 from utils.date_util import parse_time
-from utils.response_utils import success_response
+from utils.response_utils import success_response, handle_errors
 
 video_bp = Blueprint('video', __name__, url_prefix='/video')
 
@@ -97,7 +97,7 @@ def edit():
     print("video_id", video_id)
     print("video_url", video_url)
     #  直接传视频url
-    output_path = video_service.video_editing(video_id, student_id, video_url, image_url, threshold=0.7)
-    output_url = output_path.replace("C:/work/WebstormProjects/intelligent_video_editing/public", "")
+    output_path = video_service.video_editing(video_id, student_id, video_url, image_url, threshold=0.6)
+    output_url = output_path.replace("C:/work/WebstormProjects/intelligent_video_editing-web/public", "")
     print("output_url", output_url)
     return jsonify(success_response(data=output_url, path=request.path))
