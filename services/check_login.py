@@ -25,6 +25,7 @@ def pwd_check(username,password):
     # print(pwd_hash)
     # print(check_password_hash(pwd_hash, password))
     if check_password_hash(pwd_hash, password):
+        print('Login Successful')
         return True
     else:
         return False

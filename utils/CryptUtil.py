@@ -26,6 +26,7 @@ def encrypt(data: str, key: str = KEY, iv: str = IV) -> str:
         return "encrypt error:{}".format(e)
 
 
+
 def decrypt(data: str, key: str = KEY, iv: str = IV) -> str:
     try:
         encrypted_data = base64.b64decode(data)
@@ -33,7 +34,10 @@ def decrypt(data: str, key: str = KEY, iv: str = IV) -> str:
         cipher = AES.new(key.encode('utf-8'), AES.MODE_CBC, iv.encode('utf-8'))
         decrypted_data = cipher.decrypt(encrypted_data)
 
-        return decrypted_data.decode('utf-8').strip()
+        # 去除填充
+        decrypted_data = decrypted_data[:-decrypted_data[-1]]
+
+        return decrypted_data.decode('utf-8')
     except Exception as e:
         print(e)
         return "decrypt error:{}".format(e)

@@ -57,9 +57,25 @@ def refresh():
     access_token = create_access_token(identity=current_user)
     return jsonify(success_response(data={'token': access_token}, path=request.url))
 
-@account_bp.route('register', methods=['GET', 'POST'])
-def register():
-    return None
+@account_bp.route('/updatePwd', methods=['POST'])
+@jwt_required()
+def update_pwd():
+    try:
+        old_password = request.args.get('oldPassword')
+        password = request.args.get('password')
+        re_password = request.args.get('rePassword')
+        current_user = get_jwt_identity()
+        if old_password == '' or password == '':
+            return error_response(400, 40006, "密码不能为空", "密码不能为空")
+        if password != re_password:
+            return error_response(400, 40006, "前后密码不一致", "前后密码不一致")
+        if not pwd_check(current_user,old_password):
+            return error_response(400, 40006, "旧密码输入错误", "旧密码输入错误")
+        if account_service.update_pwd(current_user, password):
+            return jsonify(success_response(data={'message': '密码修改成功'}, path=request.url))
+    except Exception as e:
+        log_message(e)
+    return error_response(400, 40005, "未知错误,修改密码失败", "修改密码失败")
 
 @account_bp.route('/protected', methods=['GET'])
 @jwt_required()

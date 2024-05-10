@@ -1,9 +1,13 @@
+from datetime import datetime
+
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from sqlalchemy.sql.functions import user
+from werkzeug.security import generate_password_hash
 
 from services import user_service, base_service,org_service
-from utils.response_utils import success_response
+from status import user_status
+from utils.response_utils import success_response,error_response
 from utils.date_util import parse_time
 
 user_bp = Blueprint('user', __name__, url_prefix='/user')
@@ -90,6 +94,67 @@ def list():
     return jsonify(success_response(data=paginated_result, path=request.path))
 
 @user_bp.route("/getAllOrgs", methods=["GET"])
+@jwt_required()
 def get_all_orgs():
     result = org_service.query_all()
     return jsonify(success_response(data=result, path=request.path))
+
+# 新增（编辑）账号
+@user_bp.route("", methods=["POST"])
+@jwt_required()
+def save():
+    id = request.json.get("user_id")
+    org_id = request.json.get("org_id")
+    account = request.json.get("account")
+    name = request.json.get("name")
+    sex = request.json.get("sex")
+    phone = request.json.get("phone")
+    email = request.json.get("email")
+    repeat_user = user_service.find_user(account)
+    if id is None:
+        # 判断账号是否重复
+        if repeat_user is not None:
+            return error_response(400, 40001, "账号重复", "账号重复")
+
+        gmt_create = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        status = user_status.userStatus.OK.get_code()
+        is_delete = '0'
+
+        # 构建 SQL 语句和参数
+        sql = "INSERT INTO user (org_id, account, name, phone, gmt_create, status, is_delete"
+        values = "VALUES (%s, %s, %s, %s, %s, %d, %s"
+        params = [org_id, account, name, phone, gmt_create, status, is_delete]
+
+        # 添加邮箱字段和参数
+        if email is not None:
+            sql += ", email"
+            values += ", %s"
+            params.append(email)
+
+        # 添加性别字段和参数
+        if sex is not None:
+            sql += ", sex"
+            values += ", %s"
+            params.append(sex)
+
+
+        # 添加密码和盐
+        pwd = "123456"
+        pwd_hash = generate_password_hash(pwd, method='MD5')
+        pwd_parts = pwd_hash.split("$")
+        password = pwd_parts[2]
+        salt = pwd_parts[1]
+        sql += ", password, salt)"
+        values += ", %s, %s)"
+        params.extend([password, salt])
+
+        # 完善 SQL 语句
+        sql += " " + values
+        print(sql)
+        print(params)
+    return success_response(data="ok")
+
+@user_bp.route("/", methods=["DELETE"])
+@jwt_required()
+def remove():
+    return None

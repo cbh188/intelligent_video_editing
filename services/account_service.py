@@ -1,4 +1,4 @@
-
+from werkzeug.security import generate_password_hash, check_password_hash
 from flask import jsonify
 from utils.database import db
 def get_my_info(username):
@@ -16,3 +16,16 @@ def get_my_roles(role_id):
         name = db.cursor.fetchone()['name']
         result.append(name)
     return result
+
+def update_pwd(username, new_pwd):
+    try:
+        pwd = generate_password_hash(new_pwd, method='MD5')
+        pwd_parts = pwd.split('$')
+        password = pwd_parts[2]
+        salt = pwd_parts[1]
+        sql = "UPDATE user SET password = %s, salt = %s WHERE account = %s"
+        db.execute(sql, (password, salt, username))
+        return True
+    except Exception as e:
+        print(e)
+        return False
