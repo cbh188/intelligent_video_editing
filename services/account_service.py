@@ -2,7 +2,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask import jsonify
 from utils.database import db
 def get_my_info(username):
-    sql = "SELECT u.*,o.name AS org FROM user u LEFT JOIN organization o ON u.org_id = o.id WHERE u.account = %s AND u.is_deleted = 0"
+    sql = "SELECT u.*,o.name AS org FROM user u LEFT JOIN organization o ON u.org_id = o.id WHERE u.account = %s"
     db.execute(sql, (username,))
     result = db.cursor.fetchall()
     return result[0]

@@ -118,7 +118,7 @@ def transfer_menu_node(menus):
             if menu['component'] is not None:
                 menu_node['component'] = menu['component']
 
-            if menu['hidden'] == "1":
+            if menu['hidden']:
                 menu_node['hidden'] = True
             else:
                 menu_node['hidden'] = False
@@ -159,7 +159,7 @@ def transfer_route_menu(menus: List[List[Any]]) -> List[RouterMen]:
         menu.set_id(int(source['id']))
         menu.set_meta(meta)
 
-        if str(source['hidden']) == "1":
+        if str(source['hidden']) == '1':
             meta.set_isHide(True)
 
         router_menus.append(menu.to_dict())
@@ -249,3 +249,60 @@ def get_button_auth(role_ids: List[int]) -> Dict[str, List[str]]:
         group[item['pcode']].append(item['code'])
 
     return dict(group)
+
+def get_menuIds_by_roleId(role_id):
+    menus = menu_repository.get_menus_by_role_id(role_id)
+    # print(menus)
+    menu_ids = [menu['id'] for menu in menus]
+    return menu_ids
+
+def menu_tree_list(menu_ids = None):
+    nodes = []
+    if menu_ids is None:
+        list = menu_repository.menu_tree_list()
+
+        for item in list:
+            node = {}
+            node['id'] = item['id']
+            node['pId'] = item['pId']
+            node['name'] = item['NAME']
+            node['isOpen'] = item['isOpen']
+            node['checked'] = False
+            nodes.append(node)
+    else:
+        nodes = menu_tree_list_by_menu_ids(menu_ids)
+    return nodes
+
+def menu_tree_list_by_menu_ids(menu_ids):
+    list = menu_repository.menu_tree_list_by_menu_ids(menu_ids)
+    nodes = []
+    # print(list)
+    for item in list:
+        node = {}
+        node['id'] = item['id']
+        node['pId'] = item['pId']
+        node['name'] = item['NAME']
+        node['isOpen'] = item['isOpen']
+        node['checked'] = item['checked']
+        nodes.append(node)
+    return nodes
+
+def generate_menu_tree_for_role(list):
+    nodes = []
+    for menu in list:
+        permission_node = {}
+        permission_node['id'] = menu['id']
+        permission_node['name'] = menu['name']
+        permission_node['pId'] = menu['pId']
+        permission_node['checked'] = menu['checked']
+        nodes.append(permission_node)
+    for permission_node in nodes:
+        permission_node['children'] = []
+        for child in nodes:
+            if child['pId'] == permission_node['id']:
+                permission_node['children'].append(child)
+    result = []
+    for node in nodes:
+        if node['pId'] == 0:
+            result.append(node)
+    return result

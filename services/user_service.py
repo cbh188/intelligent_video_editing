@@ -1,5 +1,17 @@
 from utils.database import db
 from services import org_service
+
+def get_user_by_id(user_id):
+    """
+    根据用户id查询用户
+    :param user_id: 用户id
+    :return: 用户信息
+    """
+    sql = "SELECT * FROM user WHERE user_id= %s"
+    db.execute(sql, (user_id,))
+    result = db.cursor.fetchone()
+    return result
+
 def find_user(username):
     """
     根据用户名查找用户

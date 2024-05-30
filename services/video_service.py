@@ -6,6 +6,8 @@ import torch
 from facenet_pytorch import InceptionResnetV1
 from facenet_pytorch import MTCNN
 
+from utils.database import db
+
 
 def video_editing(video_id, student_id, video_url, image_url, threshold=0.8):
     """
@@ -93,7 +95,7 @@ def video_editing(video_id, student_id, video_url, image_url, threshold=0.8):
 
         dim = result_frames[0].shape[1], result_frames[0].shape[0]
         fourcc = cv2.VideoWriter_fourcc(*'XVID')
-        video = cv2.VideoWriter(output_url, fourcc, 18.0, dim)
+        video = cv2.VideoWriter(output_url, fourcc, 24.0, dim)
         for frame in result_frames:
             video.write(cv2.cvtColor(np.array(frame), cv2.COLOR_RGB2BGR))
         video.release()
@@ -101,6 +103,7 @@ def video_editing(video_id, student_id, video_url, image_url, threshold=0.8):
         # 关闭视频文件
         cap.release()
         url = video_util.avi_to_web_mp4(output_url)
+        os.remove(output_url)
         return url
     else:
         return "视频中没有匹配的人脸"
@@ -170,3 +173,24 @@ def get_embeddings(img, resnet, device):
     aligned = aligned.squeeze(0)
     embedding = resnet(aligned).detach().cpu()
     return embedding
+
+# 重复的视频编号
+def find_repeat_video(student_no,org_id):
+    sql = "SELECT * FROM video WHERE video_no = %s AND is_deleted = 0 AND org_id = %s"
+    db.execute(sql, (student_no,org_id))
+    result = db.cursor.fetchone()
+    return result
+
+# 编辑过的视频加入编辑过视频表
+def save_edited_video(url, create_by, create_time, student_id = None):
+    sql = "INSERT INTO video_edited (url, create_by, create_time, student_id) VALUES (%s, %s, %s, %s)"
+    db.execute(sql, (url, create_by, create_time, student_id))
+    result = db.cursor.rowcount
+    return result
+
+# 将剪辑的记录加入剪辑日志
+def save_edit_log(video_id, student_id, create_by, create_time):
+    sql = "INSERT INTO edit_log (video_id, student_id, create_by, create_time) VALUES (%s, %s, %s, %s)"
+    db.execute(sql, (video_id, student_id, create_by, create_time))
+    result = db.cursor.rowcount
+    return result

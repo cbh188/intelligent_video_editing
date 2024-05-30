@@ -22,3 +22,33 @@ def get_menus():
     db.execute(sql)
     result = db.cursor.fetchall()
     return result
+
+def find_menu_by_code(code):
+    sql = "SELECT * FROM menu WHERE CODE = %s"
+    db.execute(sql, (code,))
+    result = db.cursor.fetchone()
+    return result
+
+def get_menus_by_role_id(role_id):
+    sql = "SELECT menu_id AS id FROM role_rel_menu WHERE role_id = %s"
+    db.execute(sql, (role_id,))
+    result = db.cursor.fetchall()
+    return result
+
+def menu_tree_list():
+    sql = ("SELECT m1.id AS id, ( CASE WHEN (m2.id = 0 OR m2.id IS NULL) THEN 0 ELSE m2.id END ) AS pId, "
+           "m1. NAME AS NAME, ( CASE WHEN (m2.id = 0 OR m2.id IS NULL) THEN 'true' ELSE 'false' END ) AS isOpen "
+           "FROM menu m1 LEFT JOIN menu m2 ON m1.pcode = m2. CODE ORDER BY m1.id ASC")
+    db.execute(sql)
+    result = db.cursor.fetchall()
+    return result
+
+def menu_tree_list_by_menu_ids(menu_ids):
+    sql = ("SELECT m1.id AS id, ( CASE WHEN (m2.id = 0 OR m2.id IS NULL) THEN 0 ELSE m2.id END ) AS pId, "
+           "m1. NAME AS NAME, ( CASE WHEN (m2.id = 0 OR m2.id IS NULL) THEN 'true' ELSE 'false' END ) AS isOpen, "
+           "( CASE WHEN (m3.ID = 0 OR m3.ID IS NULL) THEN 'false' ELSE 'true' END ) 'checked' FROM menu m1 "
+           " LEFT JOIN menu m2 ON m1.pcode = m2. CODE LEFT JOIN ( SELECT ID FROM menu WHERE ID IN {}) m3 ON m1.id = m3.id "
+           "ORDER BY m1.id ASC").format(menu_ids)
+    db.execute(sql)
+    result = db.cursor.fetchall()
+    return result

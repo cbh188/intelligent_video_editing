@@ -34,3 +34,15 @@ def get_image_url(student_id):
     db.execute(sql, (student_id,))
     image_url = db.cursor.fetchone()['image_url']
     return image_url
+
+def find_student(student_id):
+    sql = "SELECT * FROM student WHERE student_id = %s AND is_deleted = 0"
+    db.execute(sql, (student_id,))
+    result = db.cursor.fetchone()
+    return result
+
+def find_repeat_stu_no(student_no,org_id):
+    sql = "SELECT * FROM student WHERE student_no = %s AND is_deleted = 0 AND org_id = %s"
+    db.execute(sql, (student_no,org_id))
+    result = db.cursor.fetchone()
+    return result
